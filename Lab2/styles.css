@@ -1,0 +1,11 @@
+h1, footer {
+	padding: 16px 32px;
+	background: #ddd;
+	text-align: center;
+}
+
+a {
+	background: #00F;
+	padding: 0px 12px;
+	color: #FFF;
+}
