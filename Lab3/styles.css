@@ -1,0 +1,11 @@
+.mb-8 {
+    margin-bottom: 8px;
+}
+
+.btn {
+    background-color: rgb(57, 131, 57);
+    color: rgb(255, 255, 255);
+    padding: 6px 12px;
+    border: 0;
+    border-radius: 6px;
+}
