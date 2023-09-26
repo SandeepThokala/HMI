@@ -5,21 +5,24 @@ let triangle = (base, height) => {
 triangle(3, 4)
 triangle(5, 7)
 
-let sphere = (radius) => 4 * Math.PI * (radius ** 3) / 3;
-console.log(Number.parseFloat(sphere(3).toFixed(1)));
-console.log(Number.parseFloat(sphere(5).toFixed(1)));
+let sphere = (radius) => {
+    let area = Number.parseFloat((4 * Math.PI * (radius ** 3) / 3).toFixed(1));
+    console.log(`r = ${radius}: ${area}`)
+}
+sphere(3);
+sphere(5);
 
 let to_meters = (distance, units) => {
     if (distance != 0 && units != 'm') {
         switch (units) {
             case 'Km':
-                console.log(`${distance} Km is ${Number.parseFloat(distance * 1000).toFixed(2)} m`);
+                console.log(`${distance} Km: ${Number.parseFloat(distance * 1000).toFixed(2)} m`);
                 break;
             case 'y':
-                console.log(`${distance} y is ${Number.parseFloat(distance * 0.914).toFixed(2)} m`);
+                console.log(`${distance} y: ${Number.parseFloat(distance * 0.914).toFixed(2)} m`);
                 break;
             case 'mi':
-                console.log(`${distance} mi is ${Number.parseFloat(distance * 1609.34).toFixed(2)} m`);
+                console.log(`${distance} mi: ${Number.parseFloat(distance * 1609.34).toFixed(2)} m`);
                 break;
             default:
                 break;
