@@ -40,3 +40,16 @@
 .read-the-docs {
   color: #888;
 }
+
+button {
+  margin: 0;
+}
+
+.active {
+  box-shadow: 0 0 5px cyan, 0 0 25px cyan;
+  transition: 0.5s;
+}
+
+.seek {
+  width: 75%;
+}
