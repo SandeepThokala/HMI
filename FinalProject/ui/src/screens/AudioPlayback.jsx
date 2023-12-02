@@ -1,33 +1,59 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
+import { FaStop, FaPlay, FaPause, FaBluetoothB } from 'react-icons/fa'
+import { FaShuffle } from 'react-icons/fa6'
+import { ImLoop, ImVolumeDecrease, ImVolumeHigh, ImVolumeIncrease } from 'react-icons/im'
+import { CgPlayTrackNext } from 'react-icons/cg'
+import { FiVolume, FiVolume1, FiVolume2, FiVolumeX } from 'react-icons/fi'
 
-const AudioPlayback = ({ currentSong, handleVolumeChange, handleSongChange, volume, setVolume, getVolume, getBluetoothDevices, isStop, setIsStop, isOnLoop, setIsOnLoop, isOnShuffle, setIsOnShuffle, connectedDevice }) => {
-  const [isPlaying, setIsPlaying] = useState(false)
+const AudioPlayback = ({ currentSong, volume, setVolume, getVolume, handleVolumeChange, handleSongChange, handleStop, getBluetoothDevices, setIsOnLoop, isOnLoop, isPlaying, setIsPlaying, isOnShuffle, setIsOnShuffle, connectedDevice, audioRef, duration, seek, setSeek }) => {
   const [isMute, setIsMute] = useState(volume === 0)
-  const [seek, setSeek] = useState('')
 
-  const {songId, title, artist, duration, albumArt, album } = currentSong
+  const {songId, title, artist, albumArt, album } = currentSong
   const imageStyles = {
     width: '300px',
   }
 
+  useEffect(() => {
+    let intervalId
+    if (isPlaying) {
+      intervalId = setInterval(() => {
+        setSeek(pre => pre + 1)
+        if (audioRef.current.ended) {
+          setIsPlaying(false)
+          setSeek(0)
+        }
+      }, 1000)
+    } else {
+      clearInterval(intervalId)
+    }
+
+    return () => clearInterval(intervalId)
+  }, [isPlaying])
+
   const handleMuteUnmute = () => {
-    !isMute ? setVolume(0) : getVolume()
+    if (!isMute) {
+      setVolume(0)
+      audioRef.current.volume = 0
+    } else {
+      getVolume()
+      audioRef.current.volume = volume / 10
+    }
     setIsMute(!isMute)
   }
 
-  const getseconds = duration => {
-    if (duration) {
-      const [mins, secs] = duration.split(':').map(token => Number(token))
-      return mins * 60 + secs
-    } else {
-      return 0
-    }
+  const handlePlayPause = () => {
+    setIsPlaying(!isPlaying)
+    !isPlaying ? audioRef.current.play() : audioRef.current.pause()
   }
-  const getDuration = seconds => {
+
+  const handleSeekChange = value => {
+    setSeek(value)
+    audioRef.current.currentTime = value
+  }
+
+  const formatDuration = seconds => {
     const mins = Math.floor(seconds / 60)
-    const secs = Math.round(seconds % 60)
-    // setSeek(newDuration)
-    
+    const secs = Math.round(seconds % 60)    
     return `${mins}:${String(secs).padStart(2, '0')}`
   }
 
@@ -37,69 +63,80 @@ const AudioPlayback = ({ currentSong, handleVolumeChange, handleSongChange, volu
         src={albumArt}
         style={imageStyles}
       />
+
+      {/* Song info */}
       <h3>{title}</h3>
       {artist}<br />
       {album}<br /><hr />
+      
+      {/* Playback buttons */}
       <button
-        onClick={() => setIsStop(!isStop)}
+        onClick={handleStop}
       >
-        Stop
+        <FaStop />
       </button>
       <button
         className={isPlaying ? 'active' : ''}
-        onClick={() => setIsPlaying(!isPlaying)}
+        onClick={handlePlayPause}
       >
-        {isPlaying ? 'Pause' : 'Play'}
+        {isPlaying ? <FaPause /> : <FaPlay />}
       </button>
       <button
         className={isOnLoop ? 'active' : ''}
         onClick={() => setIsOnLoop(!isOnLoop)}
       >
-        {isOnLoop ? 'Loop on' : 'Loop off'}
+        <ImLoop />
       </button>
       <button
         className={isOnShuffle ? 'active' : ''}
         onClick={() => setIsOnShuffle(!isOnShuffle)}
       >
-        {isOnShuffle ? 'Shuffle on' : 'Shuffle off'}
+        <FaShuffle />
       </button>
       <button
         onClick={() => handleSongChange(songId)}
       >
-        Next
+        <CgPlayTrackNext />
       </button><br />
+
+      {/* Playback slider */}
       <span>
-        {getDuration(seek)}
+        {formatDuration(seek)}
       </span>
       <input
         type="range"
         min={0}
         max={duration}
-        className='seek'
+        value={seek}
+        onChange={e => handleSeekChange(Number(e.target.value))}
+        className='seek-bar'
       />
       <span>
-        {getDuration(duration)}
+        {formatDuration(duration)}
       </span><br />
+      
+      {/* Volume buttons */}
       <button
         onClick={() => handleMuteUnmute()}
+        className={isMute ? 'active' : ''}
       >
-        {!isMute ? 'Mute' : 'Unmute'}
+        <FiVolumeX />
       </button>
       <button
         onClick={() => handleVolumeChange(volume - 1)}
       >
-        Volume Down
+        <ImVolumeDecrease />
       </button>
       <button
         onClick={() => handleVolumeChange(volume + 1)}
       >
-        Volume Up
+        <ImVolumeIncrease />
       </button>
       <br />
       <span
         onClick={() => handleMuteUnmute()}
       >
-        {volume < 1 ? '<x' : volume > 7 ? '<)))' : volume > 3 ? '<))' : '<)' }
+        {volume < 1 ? <FiVolume /> : volume > 7 ? <ImVolumeHigh /> : volume > 3 ? <FiVolume2 /> : <FiVolume1 /> }
       </span>
       <input
         type="range"
@@ -111,12 +148,14 @@ const AudioPlayback = ({ currentSong, handleVolumeChange, handleSongChange, volu
       <p>
         volume: {volume}
       </p>
-      <span>&gt;B {connectedDevice.deviceName ? connectedDevice.deviceName : 'n/a'}</span>
+
+      {/* Bluetooth info */}
       <button
         onClick={getBluetoothDevices}
       >
-        Bluetooth Devices
+        <FaBluetoothB /> 
       </button>
+      <span>{connectedDevice.deviceName ? connectedDevice.deviceName : 'n/a'}</span>
     </>
   )
 }

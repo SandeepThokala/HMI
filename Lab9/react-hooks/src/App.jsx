@@ -4,38 +4,28 @@ import './App.css'
 
 function App() {
 
-  const [show, setShow] = useState('hide')
-  const [message, setMessage] = useState(null)
+  const [startTime, setStartTime] = useState(null)
+  const [now, setNow] = useState(null)
 
-  const onSubmit = (value) => {
-    // setShow(show == 'show' ? message : null)
-    setTimeout(() => {
-      setMessage(value) 
-    }, 1000)
+  let timePassed = 0
+  if (startTime != null && now != null) {
+    timePassed = (now - startTime) / 1000;
+  }
+  const handleStart = () => {
+    setStartTime(Date.now())
+    setNow(Date.now())
+
+    setInterval(() => {
+      setNow(Date.now());
+    }, 10)
   }
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => {
-          setShow(show == 'show' ? 'hide' : 'show')
-          // onSubmit()
-        }}
-      >
-        Show
+      <button onClick={handleStart}>
+        start/stop
       </button>
-      {
-        show == 'show' && 
-        <Form
-          onSubmit={onSubmit}
-          show={show}
-          setShow={setShow}
-          message={message}
-          setMessage={setMessage}
-        />
-      }
-      {message && <div>{message}</div>}
+      <h1>Time: {timePassed.toFixed(3)}</h1>
     </>
   )
 }

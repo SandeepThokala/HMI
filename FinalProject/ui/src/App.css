@@ -42,7 +42,7 @@
 }
 
 button {
-  margin: 0;
+  border: none;
 }
 
 .active {
@@ -50,6 +50,6 @@ button {
   transition: 0.5s;
 }
 
-.seek {
+.seek-bar {
   width: 75%;
 }

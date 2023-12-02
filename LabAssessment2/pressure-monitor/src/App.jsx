@@ -6,7 +6,7 @@ function App() {
   const [pressure, setPressure] = useState(null)
   const statusRef = useRef('safe')
 
-  const rangeStyles = {visibility: pressure ? "visible" : "hidden"}
+  const rangeStyles = {visibility: pressure != null ? "visible" : "hidden"}
   const indicatorLevels = [
       {
         id: 'danger-low',
@@ -49,20 +49,12 @@ function App() {
 
   const handleChange = e => {
     let v = Number(e.target.value)
+    setPressure(v)
     let currentLevel = indicatorLevels.filter(level => {
       return level.min <= pressure && pressure <= level.max
     })
-    statusRef.current = currentLevel
-    setPressure(v)
+    statusRef.current = currentLevel[0].status
   }
-
-  const intervalId = setInterval(() => {
-    if (!(statusRef.current.status == "danger")) {
-      clearInterval(intervalId)
-    } else {
-      alert(`status: ${danger}`)
-    }
-  }, 3000)
 
   return (
     <>

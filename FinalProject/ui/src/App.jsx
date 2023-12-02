@@ -10,13 +10,17 @@ function App() {
   const [bluetoothDevices, setBluetoothDevices] = useState(false)
   const [connectedDevice, setConnectedDevice] = useState({})
   const [isStop, setIsStop] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
   const [isOnLoop, setIsOnLoop] = useState(false)
   const [isOnShuffle, setIsOnShuffle] = useState(false)
+  const [duration, setDuration] = useState(0)
+  const [seek, setSeek] = useState(0)
 
   const numSongs = 8
   const songIdsRef = useRef(
     Array(numSongs).fill().map((item, index) => index + 1)
   )
+  const audioRef = useRef(null)
 
   useEffect(() => {
     getVolume()
@@ -26,19 +30,28 @@ function App() {
 
   const getVolume = () => {
     axios.get('/api/volume')
-    .then(response => setVolume(response.data.volume))
+    .then(response => {
+      setVolume(response.data.volume)
+      audioRef.current.volume = response.data.volume / 10
+    })
     .catch(err => console.error(err))
   }
   const handleVolumeChange = (newVolume) => {
     if (newVolume >= 0 && newVolume <= 10) {
       setVolume(newVolume)
+      audioRef.current.volume = newVolume / 10
       axios.put('/api/volume', {volume: newVolume})
     }
   }
 
   const getSong = (songId) => {
     axios.get(`/api/songs/${songId}`)
-    .then(response => setCurrentSong(response.data))
+    .then(response => {
+      const currentSong = response.data
+      setCurrentSong(currentSong)
+      // audioRef.current.auto
+      audioRef.current.url = `http://localhost:5001/api/assets/${currentSong.title}.mp3`
+    })
     .catch(err => console.error(err))
   }
   const handleSongChange = (songId) => {
@@ -55,6 +68,14 @@ function App() {
     if (!isOnLoop && songId >= numSongs) {
       setIsStop(true)
     }
+    setSeek(0)
+    if (isPlaying) {
+      // console.log(audioRef)
+      audioRef.current.load()
+      audioRef.current.play()
+      .then(console.log('object'))
+      .catch(err => console.log(audioRef.current.errork))
+    }
   }
   const generateRandomSongId = (songIds, val) => {
     const otherIds = songIds.filter(songId => songId != val)
@@ -63,6 +84,13 @@ function App() {
     }
     const randomIndex = Math.floor(Math.random() * otherIds.length)
     return otherIds[randomIndex]
+  }
+  const handleStop = () => {
+    setIsStop(!isStop)
+    setIsPlaying(false)
+    setSeek(0)
+    audioRef.current.pause()
+    audioRef.current.currentTime = 0
   }
 
   const getBluetoothDevices = () => {
@@ -85,6 +113,13 @@ function App() {
 
   return (
     <>
+      <audio 
+        src={`http://localhost:5001/api/assets/${currentSong.title}.mp3`}
+        preload='metadata'
+        autoPlay={isPlaying}
+        ref={audioRef}
+        onLoadedMetadata={e => setDuration(e.target.duration)}
+      />
       {!bluetoothDevices ?
         <AudioPlayback
           currentSong={currentSong}
@@ -93,14 +128,19 @@ function App() {
           getVolume={getVolume}
           handleVolumeChange={handleVolumeChange}
           handleSongChange={handleSongChange}
+          handleStop={handleStop}
           getBluetoothDevices={getBluetoothDevices}
           isOnLoop={isOnLoop}
           setIsOnLoop={setIsOnLoop}
-          isStop={isStop}
-          setIsStop={setIsStop}
+          isPlaying={isPlaying}
+          setIsPlaying={setIsPlaying}
           isOnShuffle={isOnShuffle}
           setIsOnShuffle={setIsOnShuffle}
           connectedDevice={connectedDevice}
+          audioRef={audioRef}
+          duration={duration}
+          seek={seek}
+          setSeek={setSeek}
         ></AudioPlayback> :
         <BluetoothDevices
           bluetoothDevices={bluetoothDevices}
@@ -114,3 +154,4 @@ function App() {
 }
 
 export default App
+

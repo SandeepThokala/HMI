@@ -5,6 +5,7 @@ const port = process.env.PORT || 5001;
 
 // Middleware for parsing req bodies to JSON (req.body)
 app.use(express.json());
+app.use('/api/assets', express.static('assets'));  
 
 app.get('/api/volume', (req, res, next) => {
   fsp.readFile('./data.json')
