@@ -41,6 +41,9 @@
   color: #888;
 }
 
+.album-art {
+  width: 300px;
+}
 button {
   border: none;
 }

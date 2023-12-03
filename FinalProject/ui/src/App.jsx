@@ -64,7 +64,7 @@ function App() {
       getSong(generateRandomSongId(songIdsArray, songId))
     } else if (isOnLoop && !isOnShuffle) {
       getSong((songId % numSongs) + 1)
-    } else if (isOnShuffle && !isOnLoop && songIdsRef.current.length) {
+    } else if (isOnShuffle && !isOnLoop) {
       getSong(generateRandomSongId(songIdsRef.current, songId))
     } else if (!isOnShuffle && !isOnLoop && songId < numSongs) {
       getSong(songId + 1)
@@ -85,23 +85,24 @@ function App() {
   const getBluetoothDevices = () => {
     axios.get('/api/bluetooth')
     .then(response => setBluetoothDevices(response.data))
-    .catch(err => console.log(err))
+    .catch(err => console.error(err))
   }
   // fetches current conneced device
   const getConnectedDevice = () => {
     axios.get('/api/bluetooth/connected')
-    .then(response => {setConnectedDevice(
+    .then(response => {
+      setConnectedDevice(
       Object.keys(response.data).length
       ? response.data
-      : {deviceName: '', deviceId: 0}
+      : {deviceName: null, deviceId: 0}
     )})
-    .catch(err => console.log(err))
+    .catch(err => console.error(err))
   }
   // 
   const handleConnectionChange = (newDevice, newId) => {
     setConnectedDevice({
       deviceId: newId,
-      deviceName: (newId ? newDevice : '')
+      deviceName: (newId ? newDevice : null)
     })
     axios.put('/api/bluetooth/connected', {deviceId: newId})
   }
@@ -131,7 +132,7 @@ function App() {
           isOnShuffle={isOnShuffle}
           setIsOnShuffle={setIsOnShuffle}
           connectedDevice={connectedDevice}
-          audioRef={audioRef}
+          audio={audioRef.current}
           duration={duration}
           seek={seek}
           setSeek={setSeek}

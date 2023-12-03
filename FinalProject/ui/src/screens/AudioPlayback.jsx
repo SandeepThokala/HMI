@@ -1,127 +1,82 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { FaStop, FaPlay, FaPause, FaBluetoothB } from 'react-icons/fa'
-import { FaShuffle } from 'react-icons/fa6'
-import { ImLoop, ImVolumeDecrease, ImVolumeHigh, ImVolumeIncrease } from 'react-icons/im'
-import { CgPlayTrackNext } from 'react-icons/cg'
+import AudioControls from '../componenets/AudioControls'
+import { FaBluetoothB } from 'react-icons/fa'
+import { ImVolumeDecrease, ImVolumeHigh, ImVolumeIncrease } from 'react-icons/im'
 import { FiVolume, FiVolume1, FiVolume2, FiVolumeX } from 'react-icons/fi'
 
-const AudioPlayback = ({ currentSong, volume, setVolume, getVolume, handleVolumeChange, handleSongChange, getBluetoothDevices, setIsOnLoop, isOnLoop, isPlaying, setIsPlaying, isOnShuffle, setIsOnShuffle, connectedDevice, audioRef, duration, seek, setSeek }) => {
+const AudioPlayback = ({
+  currentSong,	
+  volume,	
+  setVolume,	
+  getVolume,	
+  handleVolumeChange,	
+  handleSongChange,	
+  getBluetoothDevices,	
+  setIsOnLoop,	
+  isOnLoop,	
+  isPlaying,	
+  setIsPlaying,	
+  isOnShuffle,	
+  setIsOnShuffle,	
+  connectedDevice,	
+  audio,	
+  duration,	
+  seek,	
+  setSeek	
+}) => {
   const [isMute, setIsMute] = useState(volume === 0)
 
-  const {songId, title, artist, albumArt, album } = currentSong
-  const imageStyles = {
-    width: '300px',
-  }
+  const { songId } = currentSong
 
+  // useEffect runs everytime isPlaying changes or audio ends
   useEffect(() => {
     let intervalId
     if (isPlaying) {
+      // increments seek by 1 after every 1 sec
       intervalId = setInterval(() => {
         setSeek(pre => pre + 1)
-        if (audioRef.current.ended) {
-          setIsPlaying(false)
+        // auto playing next song
+        if (audio.ended) {
           setSeek(0)
+          if (isPlaying) {
+            handleSongChange(songId)
+          }
         }
       }, 1000)
     } else {
       clearInterval(intervalId)
     }
-
     return () => clearInterval(intervalId)
-  }, [isPlaying])
+  }, [isPlaying, audio?.ended])
 
+  // handleMuteUnmute mutes and updates or unmutes and fetches
   const handleMuteUnmute = () => {
     if (!isMute) {
       setVolume(0)
-      audioRef.current.volume = 0
+      audio.volume = 0
     } else {
       getVolume()
-      audioRef.current.volume = volume / 10
+      audio.volume = volume / 10
     }
     setIsMute(!isMute)
   }
 
-  // pauses the song, sets currentTime on audioRef to 0 and sets seek to 0
-  const handleStop = () => {
-    setIsPlaying(false)
-    setSeek(0)
-    audioRef.current.pause()
-    audioRef.current.currentTime = 0
-  }
-  const handlePlayPause = () => {
-    setIsPlaying(!isPlaying)
-    !isPlaying ? audioRef.current.play() : audioRef.current.pause()
-  }
-
-  const handleSeekChange = value => {
-    setSeek(value)
-    audioRef.current.currentTime = value
-  }
-
-  const formatDuration = seconds => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.round(seconds % 60)    
-    return `${mins}:${String(secs).padStart(2, '0')}`
-  }
-
   return (
     <>
-      <img
-        src={albumArt}
-        style={imageStyles}
+      <AudioControls
+        currentSong={currentSong}
+        handleSongChange={handleSongChange}
+        isOnLoop={isOnLoop}
+        setIsOnLoop={setIsOnLoop}
+        isPlaying={isPlaying}
+        setIsPlaying={setIsPlaying}
+        isOnShuffle={isOnShuffle}
+        setIsOnShuffle={setIsOnShuffle}
+        audio={audio}
+        duration={duration}
+        seek={seek}
+        setSeek={setSeek}
       />
-
-      {/* Song info */}
-      <h3>{title}</h3>
-      {artist}<br />
-      {album}<br /><hr />
-      
-      {/* Playback buttons */}
-      <button
-        onClick={handleStop}
-      >
-        <FaStop />
-      </button>
-      <button
-        className={isPlaying ? 'active' : ''}
-        onClick={handlePlayPause}
-      >
-        {isPlaying ? <FaPause /> : <FaPlay />}
-      </button>
-      <button
-        className={isOnLoop ? 'active' : ''}
-        onClick={() => setIsOnLoop(!isOnLoop)}
-      >
-        <ImLoop />
-      </button>
-      <button
-        className={isOnShuffle ? 'active' : ''}
-        onClick={() => setIsOnShuffle(!isOnShuffle)}
-      >
-        <FaShuffle />
-      </button>
-      <button
-        onClick={() => handleSongChange(songId)}
-      >
-        <CgPlayTrackNext />
-      </button><br />
-
-      {/* Playback slider */}
-      <span>
-        {formatDuration(seek)}
-      </span>
-      <input
-        type="range"
-        min={0}
-        max={duration}
-        value={seek}
-        onChange={e => handleSeekChange(Number(e.target.value))}
-        className='seek-bar'
-      />
-      <span>
-        {formatDuration(duration)}
-      </span><br />
-      
       {/* Volume buttons */}
       <button
         onClick={() => handleMuteUnmute()}
@@ -162,7 +117,7 @@ const AudioPlayback = ({ currentSong, volume, setVolume, getVolume, handleVolume
       >
         <FaBluetoothB /> 
       </button>
-      <span>{connectedDevice.deviceName ? connectedDevice.deviceName : 'n/a'}</span>
+      <span>{connectedDevice.deviceName ?? 'n/a'}</span>
     </>
   )
 }
