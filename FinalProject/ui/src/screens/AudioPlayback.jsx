@@ -5,7 +5,7 @@ import { ImLoop, ImVolumeDecrease, ImVolumeHigh, ImVolumeIncrease } from 'react-
 import { CgPlayTrackNext } from 'react-icons/cg'
 import { FiVolume, FiVolume1, FiVolume2, FiVolumeX } from 'react-icons/fi'
 
-const AudioPlayback = ({ currentSong, volume, setVolume, getVolume, handleVolumeChange, handleSongChange, handleStop, getBluetoothDevices, setIsOnLoop, isOnLoop, isPlaying, setIsPlaying, isOnShuffle, setIsOnShuffle, connectedDevice, audioRef, duration, seek, setSeek }) => {
+const AudioPlayback = ({ currentSong, volume, setVolume, getVolume, handleVolumeChange, handleSongChange, getBluetoothDevices, setIsOnLoop, isOnLoop, isPlaying, setIsPlaying, isOnShuffle, setIsOnShuffle, connectedDevice, audioRef, duration, seek, setSeek }) => {
   const [isMute, setIsMute] = useState(volume === 0)
 
   const {songId, title, artist, albumArt, album } = currentSong
@@ -41,6 +41,13 @@ const AudioPlayback = ({ currentSong, volume, setVolume, getVolume, handleVolume
     setIsMute(!isMute)
   }
 
+  // pauses the song, sets currentTime on audioRef to 0 and sets seek to 0
+  const handleStop = () => {
+    setIsPlaying(false)
+    setSeek(0)
+    audioRef.current.pause()
+    audioRef.current.currentTime = 0
+  }
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying)
     !isPlaying ? audioRef.current.play() : audioRef.current.pause()
